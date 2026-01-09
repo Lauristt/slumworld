@@ -1,40 +1,39 @@
 # slumworld
 
-> A lightweight Python workspace for experimenting with **slum mapping / informal-settlement detection** workflows (satellite imagery → model inference → artifacts).
->
-> Repo: `Lauristt/slumworld` citeturn1view0
+> A research-oriented machine learning workspace for **slum / informal settlement detection** using satellite imagery.  
+> Designed for **clean experimentation**, **HPC scalability**, and **reproducible inference pipelines**.
 
 ---
 
-## What’s in this repo
+## Repository Overview
 
-At the moment, the repository is intentionally small and code-focused:
-
-- **`slumworldML/`** — the core Python package (project logic lives here). citeturn1view0  
-- **`main.py`** — an entry script / runnable entrypoint. citeturn1view0  
-- **`pyproject.toml`** + **`uv.lock`** — modern dependency management via `pyproject` + `uv`. citeturn1view0  
+This repo follows a **modular ML research layout**, separating *core logic*, *experiment execution*, and *cluster orchestration*.
 
 ```text
 slumworld/
-├─ slumworldML/
-├─ main.py
-├─ pyproject.toml
-└─ uv.lock
+├── slumworldML/          # Main Python package
+│   ├── src/              # Core ML / data / model logic
+│   ├── runners/          # Training & inference entrypoints
+│   ├── slurm/            # SLURM / HPC job scripts
+│   └── __init__.py
+├── main.py               # Lightweight entry script
+├── pyproject.toml        # Dependency & project configuration
+└── uv.lock               # Locked environment (uv)
 ```
 
 ---
 
-## Quickstart
+## Quick Start
 
-### 1) Create an environment & install dependencies
+### 1. Environment Setup
 
-If you use **uv**:
+Recommended (using **uv**):
 
 ```bash
 uv sync
 ```
 
-If you prefer **pip** (fallback):
+Fallback (pip + venv):
 
 ```bash
 python -m venv .venv
@@ -42,56 +41,103 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
-> Tip: `pyproject.toml` is the source of truth for dependencies and tooling configuration. citeturn1view0turn10search2
+---
 
-### 2) Run
+### 2. Run
 
 ```bash
 python main.py
 ```
 
-If `main.py` exposes CLI arguments, you can usually discover them with:
-
-```bash
-python main.py -h
-```
+or run specific experiments via scripts in `slumworldML/runners/`.
 
 ---
 
-## Typical workflow (high-level)
+## `slumworldML/` Package Structure
 
-This project is structured to support an iterative ML workflow:
+### `src/` — Core Implementation Layer
 
-1. **Prepare inputs**: imagery tiles / metadata / labels
-2. **Run experiments**: training or inference routines in `slumworldML/`
-3. **Export outputs**: masks, overlays, metrics, logs
+This directory contains **all reusable and testable logic**, including:
 
----
+- Data loading & preprocessing
+- Model architectures (e.g. segmentation models)
+- Training / inference utilities
+- Evaluation & post-processing logic
 
-## Development
+**Design principle:**  
+Code in `src/` should be *pure*, importable, and environment-agnostic.
 
-### Code style
-
-- Keep `slumworldML/` as the *only* package directory (avoid drifting utilities into the repo root).
-- Prefer small modules with clear I/O contracts (paths in → artifacts out).
-
-### Updating dependencies
-
-If you’re using `uv`:
-
-```bash
-uv add <package>
-uv lock
-```
+> If it defines *how something works*, it belongs in `src/`.
 
 ---
 
-## Notes
+### `runners/` — Experiment & Inference Entrypoints
 
-- This README is generated from the public repo structure visible on GitHub; if you add docs, example configs, or a CLI spec, it’s easy to expand this into a fuller “user guide”. citeturn1view0
+This folder hosts **thin execution scripts** that assemble components from `src/`.
+
+Typical responsibilities:
+- Parse experiment parameters
+- Launch training or inference jobs
+- Handle I/O paths and logging
+
+Characteristics:
+- Minimal logic
+- Easy to modify per experiment
+- Safe to run locally or on compute nodes
+
+> If a script *does something*, it belongs in `runners/`.
+
+---
+
+### `slurm/` — HPC / Cluster Orchestration
+
+This directory contains **SLURM job submission scripts** for large-scale runs.
+
+Includes:
+- Resource specifications (GPU / CPU / memory / walltime)
+- Environment activation
+- Calls into `runners/` scripts
+
+Typical workflow:
+1. Adjust parameters in a SLURM script
+2. Submit with `sbatch`
+3. SLURM executes the corresponding runner
+
+This keeps **infrastructure concerns fully isolated** from ML logic.
+
+---
+
+## Architectural Philosophy
+
+The project enforces a clear **three-layer separation**:
+
+| Layer | Responsibility |
+|------|----------------|
+| `src/` | What the model *is* |
+| `runners/` | What the experiment *does* |
+| `slurm/` | Where & how it *runs* |
+
+This structure scales cleanly from:
+- Local prototyping  
+- Multi-GPU servers  
+- Shared academic HPC clusters  
+
+---
+
+## Development Notes
+
+- Keep business logic inside `src/`
+- Avoid hard-coding paths in `runners/`
+- Treat `slurm/` as infrastructure-only
+- Prefer explicit configs over implicit globals
 
 ---
 
 ## License
 
-No license file is currently present in the repo root. Consider adding one (e.g., MIT/Apache-2.0) if you intend others to reuse the code. citeturn1view0
+No license file is currently included.  
+Consider adding one (MIT / Apache-2.0) if you plan to share or reuse this code publicly.
+
+---
+
+*Maintained by @Lauristt*
